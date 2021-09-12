@@ -1,8 +1,54 @@
 apply plugin: 'com.android.application'
 
+// Enable collecting coverage also for unit tests
+apply plugin: 'jacoco'
+
+jacoco {
+    // This should match the one inside build.gradle
+    toolVersion = '0.8.6'
+}
+
+tasks.withType(Test) {
+    jacoco.includeNoLocationClasses = true
+    // This will break JDK 9 otherwise
+    jacoco.excludes = ['jdk.internal.*']
+}
+
+// General switch for tests types this control report generation but not yet unit test selection - TODO Make this a flag
+def carvedTests = project.hasProperty('carvedTests')// ? project.getProperty('carvedTests') : false //Default value false
+
+def carvedTestSrcDir = "src/carvedTest"
+def testReportPrefix = "${buildDir}/carvedTest/testExecution"
+def coverageReportPrefix = "${buildDir}/carvedTest/coverage"
+
+if (carvedTests){
+    if (project.hasProperty('testName')){
+        def testName = project.getProperty('testName')
+        println ""
+        println "* Processing Carved Test ${testName}"
+        println ""
+
+        carvedTestSrcDir = "src/carvedTest/${testName}"
+
+        testReportPrefix = "${buildDir}/carvedTest/${testName}/testExecution"
+        coverageReportPrefix = "${buildDir}/carvedTest/${testName}/coverage"
+    }
+}
+
+
 android {
     compileSdkVersion 28
     buildToolsVersion '28.0.3'
+
+    // Change the src folder for carved tests
+    sourceSets {
+        test {
+            if (carvedTests) {
+                java.srcDirs = ["$carvedTestSrcDir"]
+            }
+        }
+    }
+
 
     defaultConfig {
         applicationId "ch.hgdev.toposuite"
@@ -35,6 +81,39 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+
+        unitTests.all {
+
+            // Nices output on the console/logs
+            testLogging {
+                events "passed", "skipped", "failed", "standardOut", "standardError"
+                outputs.upToDateWhen {false}
+                showStandardStreams = true
+            }
+
+            jacoco {
+                includeNoLocationClasses = true
+            }
+
+            test {
+                //Get last path of default set path.
+                def junitXmlTestTaskName = file("$reports.junitXml.destination").name
+                def htmlTestTaskName = file("$reports.html.destination").name
+
+                if ( carvedTests ) {
+                    // Just use the same?
+                    reports.junitXml.destination = file("$testReportPrefix/$junitXmlTestTaskName")
+                    reports.html.destination = file("$testReportPrefix/$junitXmlTestTaskName")
+                }
+            }
+        }
+    }
+
 }
 
 dependencies {
@@ -52,4 +131,89 @@ task javadoc(type: Javadoc) {
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     destinationDir = file("../javadoc/")
     failOnError false
+}
+
+task jacocoTestsReport(type: JacocoReport, dependsOn: ['testDebugUnitTest']) {
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports after running the Original Tests."
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+        // TODO Move this above
+        if ( carvedTests ) {
+
+
+            println "\n\n\n\n\n\n"
+            println " -- " + file("$coverageReportPrefix/html")
+
+            html.destination file("$coverageReportPrefix/html")
+            xml.destination file("$coverageReportPrefix/xml")
+        }
+    }
+
+    def fileFilter = ['**/R.class',
+                      '**/R$*.class',
+                      '**/BuildConfig.class',
+                      'androidx/**/*.*',
+                      '**/view/*.*',
+                      '**/data/*.*',
+                      '**/data/model/*.*',
+                      '**/generated/callback/*.*',
+                      '**/lambda$*.class',
+                      '**/lambda.class',
+                      '**/*lambda.class',
+                      '**/*lambda*.class']
+
+    def debugTree = fileTree(dir:
+            "${buildDir}/intermediates/javac/debug/classes",
+            excludes: fileFilter
+    )
+
+    def mainSrc = "/src/main/java"
+
+    //sourceDirectories = files([mainSrc])
+    getSourceDirectories().setFrom(files([mainSrc]))
+    getClassDirectories().setFrom(files([debugTree]))
+    getExecutionData().setFrom(fileTree(dir: "${buildDir}", includes:[
+            "/jacoco/testDebugUnitTest.exec"]))
+    //classDirectories = files([debugTree])
+    //executionData = fileTree(dir: "${buildDir}", includes:[
+    //        "/jacoco/testDebugUnitTest.exec"])
+}
+
+task jacocoUnitTestCoverage(type : JacocoReport, dependsOn : ['testDebugUnitTest']) {
+    group       = 'Reporting'
+    description = 'Generate JaCoCo coverage report for unit tests'
+    reports {
+        xml.enabled  = true
+        html.enabled = true
+    }
+    def fileFilter = ['**/R.class', '**/BuildConfig.class','**/R.class','**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*']
+    def coverageSourceDirs = ["${project.projectDir}/src/main/java"]
+    getClassDirectories().setFrom(fileTree(dir:"${buildDir}/intermediates/javac/debug/classes", excludes: fileFilter))
+    getSourceDirectories().setFrom(files(coverageSourceDirs))
+
+    getExecutionData().setFrom(fileTree(
+            dir     : "${buildDir}",
+            include : ['jacoco/testDebugUnitTest.exec']
+    ))
+}
+
+task jacocoGUITestCoverage(type : JacocoReport, dependsOn : ['connectedDebugAndroidTest']) {
+    group       = 'Reporting'
+    description = 'Generate JaCoCo coverage report for GUI tests'
+    reports {
+        xml.enabled  = true
+        html.enabled = true
+    }
+    def fileFilter = ['**/R.class', '**/BuildConfig.class','**/R.class','**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*']
+    def coverageSourceDirs = ["${project.projectDir}/src/main/java"]
+    getClassDirectories().setFrom(fileTree(dir:"${buildDir}/intermediates/javac/debug/classes", excludes: fileFilter))
+    getSourceDirectories().setFrom(files(coverageSourceDirs))
+
+    getExecutionData().setFrom(fileTree(
+            dir     : "${buildDir}",
+            include : ['outputs/code_coverage/debugAndroidTest/connected/*coverage.ec']
+    ))
 }
