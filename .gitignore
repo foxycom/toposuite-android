@@ -38,3 +38,11 @@ stats/
 tags
 Thumbs.db
 workspace
+
+
+# ABC
+traces
+*.testlog
+app-androidTest.apk
+app-instrumented.apk
+app-original.apk

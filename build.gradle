@@ -20,3 +20,7 @@ allprojects {
         }
     }
 }
+
+ext {
+     jacocoEnabled = System.properties.getProperty("jacocoEnabled") ?: "false"
+}
