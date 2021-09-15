@@ -1,4 +1,4 @@
-/ Enable collecting coverage also for unit tests
+// Enable collecting coverage also for unit tests
 apply plugin: 'jacoco'
 
 jacoco {
@@ -11,6 +11,9 @@ tasks.withType(Test) {
     // This will break JDK 9 otherwise
     jacoco.excludes = ['jdk.internal.*']
 }
+
+def carvedTests = project.hasProperty('carvedTests')// ? project.getProperty('carvedTests') : false //Default value false
+
 
 task jacocoTestsReport(type: JacocoReport, dependsOn: ['testDebugUnitTest']) {
     group = "Reporting"
