@@ -1,7 +1,6 @@
 package ch.hgdev.toposuite.test.calculation;
 
-import android.support.test.filters.SmallTest;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import junit.framework.Assert;
 
@@ -15,7 +14,6 @@ import ch.hgdev.toposuite.points.Point;
 import ch.hgdev.toposuite.test.testutils.CalculationTestRunner;
 
 @RunWith(AndroidJUnit4.class)
-@SmallTest
 public class LeveOrthogonalTest extends CalculationTestRunner {
 
     @Before

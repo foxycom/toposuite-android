@@ -1,6 +1,5 @@
 package ch.hgdev.toposuite.test.testutils;
 
-import android.support.test.runner.AndroidJUnitRunner;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -13,7 +12,7 @@ import ch.hgdev.toposuite.App;
  * @author HGdev
  *
  */
-public class CalculationTestRunner extends AndroidJUnitRunner {
+public class CalculationTestRunner  {
     protected  DecimalFormat df0;
     protected DecimalFormat df1;
     protected DecimalFormat df2;

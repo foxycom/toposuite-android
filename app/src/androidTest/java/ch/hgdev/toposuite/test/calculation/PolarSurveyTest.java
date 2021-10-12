@@ -1,7 +1,6 @@
 package ch.hgdev.toposuite.test.calculation;
 
-import android.support.test.filters.SmallTest;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import junit.framework.Assert;
 
@@ -23,7 +22,6 @@ import ch.hgdev.toposuite.utils.MathUtils;
  * @author HGdev
  */
 @RunWith(AndroidJUnit4.class)
-@SmallTest
 public class PolarSurveyTest extends CalculationTestRunner {
 
     @Before
