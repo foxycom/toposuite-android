@@ -92,7 +92,6 @@ ch.hgdev.toposuite.test.calculation.TriangleSolverTest issue760
 ch.hgdev.toposuite.test.calculation.TriangleSolverTest twoSolutionsCases
 ch.hgdev.toposuite.test.points.PointTest pointToString
 ch.hgdev.toposuite.test.points.PointTest constructor
-ch.hgdev.toposuite.test.points.PointTest getters
 ch.hgdev.toposuite.test.points.PointTest setters
 ch.hgdev.toposuite.test.utils.MathUtilsTest gadToRad
 ch.hgdev.toposuite.test.utils.MathUtilsTest equalsForPointsWithTolerance
